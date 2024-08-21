@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-todo-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: simple-todo-app
+  template:
+    metadata:
+      labels:
+        app: simple-todo-app
+    spec:
+      containers:
+      - name: simple-todo-app
+        image: ashhar001/simple-todo-app:v3
+        ports:
+        - containerPort: 8080
