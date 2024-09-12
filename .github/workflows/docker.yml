@@ -3,29 +3,68 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - master
+      - '**' # Trigger on all branches for build and test
   pull_request:
     branches:
-      - master
+      - '**' # Trigger on pull requests for build and test
 
 jobs:
-  build:
+  # Stage 1: Build and Test
+  build_and_test:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout code from the current branch
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.8.0'  # Use your Node.js version
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          npm install
+
+      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
+      # Build Docker image
+      - name: Build Docker image
         run: |
-          docker build -t ashhar001/simple-todo-app:latest .
+          docker build -t ashhar001/simple-todo-app:${{ github.sha }} .
+          docker tag ashhar001/simple-todo-app:${{ github.sha }} ashhar001/simple-todo-app:latest
+
+  # Stage 2: Deploy only when branch is merged into master/main
+  deploy:
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the latest main branch code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Push Docker image to the repository
+      - name: Push Docker image
+        run: |
+          docker push ashhar001/simple-todo-app:${{ github.sha }}
           docker push ashhar001/simple-todo-app:latest
