@@ -1,31 +1,108 @@
+# name: CI/CD Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - master
+#   pull_request:
+#     branches:
+#       - master
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v1
+
+#       - name: Log in to Docker Hub
+#         uses: docker/login-action@v1
+#         with:
+#           username: ${{ secrets.DOCKER_USERNAME }}
+#           password: ${{ secrets.DOCKER_PASSWORD }}
+
+#       - name: Build and push Docker image
+#         run: |
+#           docker build -t ashhar001/simple-todo-app:latest .
+#           docker push ashhar001/simple-todo-app:latest
+
+
 name: CI/CD Pipeline
 
 on:
   push:
     branches:
-      - master
+      - '**' # Trigger on all branches for build and test
   pull_request:
     branches:
-      - master
+      - '**' # Trigger on pull requests for build and test
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed # Trigger deploy only when workflow completes on the main branch
 
 jobs:
-  build:
+  # Stage 1: Build and Test
+  build_and_test:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout code from the current branch
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Set up Node.js (optional if needed for testing)
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  # Adjust this based on your node version
+
+      # Lint code for basic syntax checks
+      - name: Run Syntax Tests (Lint)
+        run: |
+          npm install
+          npm run lint # This step assumes you have a lint script in your package.json
+
+      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
+      # Build Docker image
+      - name: Build Docker image
         run: |
-          docker build -t ashhar001/simple-todo-app:latest .
+          docker build -t ashhar001/simple-todo-app:${{ github.sha }} .
+          docker tag ashhar001/simple-todo-app:${{ github.sha }} ashhar001/simple-todo-app:latest
+
+  # Stage 2: Deploy only when branch is merged into master/main
+  deploy:
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the latest main branch code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Push Docker image to the repository
+      - name: Push Docker image
+        run: |
+          docker push ashhar001/simple-todo-app:${{ github.sha }}
           docker push ashhar001/simple-todo-app:latest
