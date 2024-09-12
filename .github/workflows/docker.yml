@@ -27,5 +27,5 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t ashhar001/simple-todo-app:v3 .
-          docker push ashhar001/simple-todo-app:v3
+          docker build -t ashhar001/simple-todo-app:latest .
+          docker push ashhar001/simple-todo-app:latest

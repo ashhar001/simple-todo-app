@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: simple-todo-app
-        image: ashhar001/simple-todo-app:v3
+        image: ashhar001/simple-todo-app:latest
         ports:
         - containerPort: 8080
