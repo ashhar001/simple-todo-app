@@ -16,13 +16,13 @@ jobs:
     steps:
       # Checkout code from the current branch
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      # Set up Node.js (optional if needed for testing)
+      # Set up Node.js
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '14'  # Adjust this based on your node version
+          node-version: '22.8.0'  # Ensure the same version as in your local environment
 
       # Lint code for basic syntax checks
       - name: Run Syntax Tests (Lint)
@@ -55,7 +55,7 @@ jobs:
     steps:
       # Checkout the latest main branch code
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Log in to Docker Hub
       - name: Log in to Docker Hub
