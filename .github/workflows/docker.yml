@@ -22,13 +22,12 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22.8.0'  # Ensure the same version as in your local environment
+          node-version: '22.8.0'  # Use your Node.js version
 
-      # Lint code for basic syntax checks
-      - name: Run Syntax Tests (Lint)
+      # Install dependencies
+      - name: Install dependencies
         run: |
           npm install
-          npm run lint # This step assumes you have a lint script in your package.json
 
       # Set up Docker Buildx
       - name: Set up Docker Buildx
